@@ -24,16 +24,16 @@ public class InterfaceHandler
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(text);
 
-        vBox.getChildren().addAll(TopPanel(), borderPane, InterfaceManager.s_Table(), BottomPanelEditing());
+        vBox.getChildren().addAll(topPanel(), borderPane, InterfaceManager.s_Table(), bottomPanelEditing());
 
         Scene scene = new Scene(vBox);
 
         primaryStage.setScene(scene);
-        primaryStage.setWidth(590);
+        primaryStage.setWidth(655);
         primaryStage.setHeight(550);
         primaryStage.show();
     }
-    private MenuBar TopPanel()
+    private MenuBar topPanel()
     {
         MenuBar menuBar = new MenuBar();
 
@@ -57,19 +57,19 @@ public class InterfaceHandler
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuReference);
 
-        menuItemOpen.setOnAction(event -> {InterfaceManager.s_HandleOpen(primaryStage); ChangeBottom(false);});
-        menuItemNew.setOnAction(event -> {InterfaceManager.s_HandleNew(primaryStage); ChangeBottom(true);});
+        menuItemOpen.setOnAction(event -> {InterfaceManager.s_HandleOpen(primaryStage); changeBottom(false);});
+        menuItemNew.setOnAction(event -> {InterfaceManager.s_HandleNew(primaryStage); changeBottom(true);});
         menuItemSaveAs.setOnAction(event -> InterfaceManager.s_HandleSaveAs(primaryStage));
         menuItemSave.setOnAction(event -> InterfaceManager.s_HandleSave(primaryStage));
         menuItemClose.setOnAction(event -> Platform.exit());
-        menuStartEdit.setOnAction(event -> ChangeBottom(true));
-        menuEndEdit.setOnAction(event -> ChangeBottom(false));
+        menuStartEdit.setOnAction(event -> changeBottom(true));
+        menuEndEdit.setOnAction(event -> changeBottom(false));
         menuItemInfo.setOnAction(event -> InterfaceManager.s_HandleInfo());
         menuItemDescription.setOnAction(event -> InterfaceManager.s_HandleDescription());
 
         return menuBar;
     }
-    private GridPane BottomPanel()
+    private GridPane bottomPanel()
     {
         GridPane gridPane = new GridPane();
 
@@ -112,7 +112,7 @@ public class InterfaceHandler
 
         return gridPane;
     }
-    private GridPane BottomPanelEditing()
+    private GridPane bottomPanelEditing()
     {
         GridPane gridPane = new GridPane();
 
@@ -180,17 +180,17 @@ public class InterfaceHandler
 
         return gridPane;
     }
-    private void ChangeBottom(boolean toEditing)
+    private void changeBottom(boolean toEditing)
     {
         if (toEditing)
         {
             vBox.getChildren().remove(3);
-            vBox.getChildren().add(BottomPanelEditing());
+            vBox.getChildren().add(bottomPanelEditing());
         }
         else
         {
             vBox.getChildren().remove(3);
-            vBox.getChildren().add(BottomPanel());
+            vBox.getChildren().add(bottomPanel());
         }
     }
     public InterfaceHandler(Stage _primaryStage) { primaryStage = _primaryStage; }

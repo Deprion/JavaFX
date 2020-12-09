@@ -2,20 +2,6 @@ package sample;
 
 public class TransferData
 {
-    public static ProductData[] StringToData(String[] str)
-    {
-        if (str.length != 0)
-        {
-            ProductData[] data = new ProductData[str.length];
-            for (int i = 0; i < str.length; i++) {
-                String[] tempS = str[i].split(", ");
-                data[i] = new ProductData(Integer.parseInt(tempS[0]), tempS[1], Integer.parseInt(tempS[2]),
-                        Integer.parseInt(tempS[3]));
-            }
-            return data;
-        }
-        return null;
-    }
     public static ProductData[] StringToData(String str)
     {
         if (!str.isEmpty())

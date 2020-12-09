@@ -16,7 +16,6 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 
 public class InterfaceManager
 {
@@ -41,6 +40,11 @@ public class InterfaceManager
         Cipher.setCellValueFactory(data -> data.getValue().GetCipherProperty());
         Number.setCellValueFactory(data -> data.getValue().GetNumberProperty().asString());
         Score.setCellValueFactory(data -> data.getValue().GetScoreProperty().asString());
+
+        Identifier.setPrefWidth(235);
+        Cipher.setPrefWidth(210);
+        Number.setPrefWidth(140);
+        Score.setPrefWidth(50);
 
         tableView.getColumns().addAll(Identifier, Cipher, Number, Score);
 
@@ -156,18 +160,27 @@ public class InterfaceManager
     public static void s_AddItem(ProductData productData)
     {
         boolean isAdd = false;
-        for (ProductData value : list)
+        if (!list.isEmpty())
         {
-            String[] data = value.GetKey();
-            if (!Arrays.toString(productData.GetKey()).equals(Arrays.toString(data)))
+            for (ProductData value : list)
             {
-                isAdd = true;
+                String[] data = value.GetKey();
+                if (!Arrays.toString(productData.GetKey()).equals(Arrays.toString(data)))
+                {
+                    isAdd = true;
+                }
+            }
+            if (isAdd)
+            {
+                list.add(productData);
+                currentList.add(productData);
             }
         }
-        if(isAdd)
+        else
         {
             list.add(productData);
             currentList.add(productData);
+            tableView.setItems(list);
         }
         tableView.refresh();
     }
@@ -294,9 +307,17 @@ public class InterfaceManager
             currentList.clear();
 
             ProductData[] tempData = TransferData.StringToData(str);
+
             list.addAll(tempData);
             currentList.addAll(list);
             tableView.setItems(list);
+            tableView.refresh();
+        }
+        else
+        {
+            list.clear();
+            currentList.clear();
+            tableView.refresh();
         }
     }
     private static void generateStage(String title, BorderPane borderPane)
