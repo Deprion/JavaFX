@@ -1,34 +1,62 @@
 package sample;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.awt.*;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 
 public class InterfaceManager
 {
-    private static Desktop desktop = Desktop.getDesktop();
     private static File fileP;
+    private static ObservableList<ProductData> list = FXCollections.observableArrayList();
+    private static ObservableList<ProductData> currentList = FXCollections.observableArrayList();
+    private static TableView<ProductData> tableView = new TableView<>();
+    private static Comparator comparator = new Comparator();
 
+    public static TableView<ProductData> s_Table()
+    {
+        TableColumn<ProductData, String> Identifier
+                = new TableColumn<>("Идентификационный номер товара");
+        TableColumn<ProductData, String> Cipher
+                = new TableColumn<>("Шифр инспектирующей фирмы");
+        TableColumn<ProductData, String> Number
+                = new TableColumn<>("Номер квартала");
+        TableColumn<ProductData, String> Score
+                = new TableColumn<>("Балл");
+
+        Identifier.setCellValueFactory(data -> data.getValue().GetIdentifierProperty().asString());
+        Cipher.setCellValueFactory(data -> data.getValue().GetCipherProperty());
+        Number.setCellValueFactory(data -> data.getValue().GetNumberProperty().asString());
+        Score.setCellValueFactory(data -> data.getValue().GetScoreProperty().asString());
+
+        tableView.getColumns().addAll(Identifier, Cipher, Number, Score);
+
+        return tableView;
+    }
     public static void s_HandleOpen(Stage primaryStage)
     {
         final FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter("DB", "*.db");
         FileChooser.ExtensionFilter filter1 = new FileChooser.ExtensionFilter("Text", "*.txt");
-        fileChooser.getExtensionFilters().addAll(filter, filter1);
+        fileChooser.getExtensionFilters().addAll(filter1, filter);
         File file = fileChooser.showOpenDialog(primaryStage);
         if (file != null)
         {
-            openFile(file);
             fileP = file;
+            getUserList(openFile(file));
         }
     }
     public static void s_HandleNew(Stage primaryStage)
@@ -36,13 +64,15 @@ public class InterfaceManager
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter("DB", "*.db");
         FileChooser.ExtensionFilter filter1 = new FileChooser.ExtensionFilter("Text", "*.txt");
-        fileChooser.getExtensionFilters().addAll(filter, filter1);
+        fileChooser.getExtensionFilters().addAll(filter1, filter);
         File file = fileChooser.showSaveDialog(primaryStage);
         if ( file != null )
         {
             try ( FileWriter fileWriter = new FileWriter(file.getAbsoluteFile()) )
             {
-                openFile(file);
+                list.clear();
+                currentList.clear();
+                tableView.refresh();
                 fileP = file;
             }
             catch (IOException e)
@@ -56,18 +86,26 @@ public class InterfaceManager
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter("DB", "*.db");
         FileChooser.ExtensionFilter filter1 = new FileChooser.ExtensionFilter("Text", "*.txt");
-        fileChooser.getExtensionFilters().addAll(filter, filter1);
+        fileChooser.getExtensionFilters().addAll(filter1, filter);
         File file = fileChooser.showSaveDialog(primaryStage);
         if ( file != null )
         {
-            try ( FileWriter fileWriter = new FileWriter(file.getAbsoluteFile()) )
+            ProductData[] productData = new ProductData[list.size()];
+            for (int i = 0; i < list.size(); i++)
             {
-                fileWriter.write("d");
-                fileP = file;
+                productData[i] = list.get(i);
             }
-            catch (IOException e)
+            if (TransferData.DataToString(productData) != null)
             {
-                e.printStackTrace();
+                try (FileWriter fileWriter = new FileWriter(file.getAbsoluteFile()))
+                {
+                    fileWriter.write(TransferData.DataToString(productData));
+                    fileP = file;
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -75,80 +113,210 @@ public class InterfaceManager
     {
         if (fileP != null)
         {
-            try ( FileWriter fileWriter = new FileWriter(fileP))
+            ProductData[] productData = new ProductData[list.size()];
+            for (int i = 0; i < list.size(); i++)
             {
-                fileWriter.write("new");
+                productData[i] = list.get(i);
             }
-            catch (IOException e)
+            if (TransferData.DataToString(productData) != null)
             {
-                e.printStackTrace();
-            }
-        }
-        else
-        {
-            FileChooser fileChooser = new FileChooser();
-            FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter("DB", "*.db");
-            FileChooser.ExtensionFilter filter1 = new FileChooser.ExtensionFilter("Text", "*.txt");
-            fileChooser.getExtensionFilters().addAll(filter, filter1);
-            File file = fileChooser.showSaveDialog(primaryStage);
-            if (file != null) {
-                try (FileWriter fileWriter = new FileWriter(file.getAbsoluteFile())) {
-                    fileWriter.write("d");
-                } catch (IOException e) {
+                try ( FileWriter fileWriter = new FileWriter(fileP))
+                {
+                    fileWriter.write((TransferData.DataToString(productData)));
+                }
+                catch (IOException e)
+                {
                     e.printStackTrace();
                 }
             }
         }
-    }
-    public static void s_HandleStartEditing()
-    {
-
-    }
-    public static void s_HandleEndEditing()
-    {
-
+        else
+        {
+            s_HandleSaveAs(primaryStage);
+        }
     }
     public static void s_HandleInfo()
     {
-        Stage stage = new Stage();
-        stage.setTitle("О программе");
-        stage.initModality(Modality.APPLICATION_MODAL);
-
-        Text text = new Text("Систему разработал студент группы ПИН/б-19-о Мельник Александр Сергеевич " +
+        Text text = new Text("Систему разработал студент группы ПИН/б-19-о\nМельник Александр Сергеевич\n" +
                 "СевГУ - 2020"); //TODO
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(text);
 
-        stage.setScene(new Scene(borderPane));
-        stage.setWidth(250);
-        stage.setHeight(150);
-        stage.showAndWait();
+        generateStage("О программе", borderPane);
     }
     public static void s_HandleDescription()
     {
-        Stage stage = new Stage();
-        stage.setTitle("Описание ИС");
-        stage.initModality(Modality.APPLICATION_MODAL);
-
-        Text text = new Text("Информационная система осуществляет хранение и обработку данных " +
+        Text text = new Text("Информационная система осуществляет хранение\nи обработку данных " +
                 "о качестве товара за год"); //TODO
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(text);
 
-        stage.setScene(new Scene(borderPane));
-        stage.setWidth(250);
-        stage.setHeight(150);
-        stage.showAndWait();
+        generateStage("Описание ИС", borderPane);
     }
-    private static void openFile(File file)
+    public static void s_AddItem(ProductData productData)
+    {
+        boolean isAdd = false;
+        for (ProductData value : list)
+        {
+            String[] data = value.GetKey();
+            if (!Arrays.toString(productData.GetKey()).equals(Arrays.toString(data)))
+            {
+                isAdd = true;
+            }
+        }
+        if(isAdd)
+        {
+            list.add(productData);
+            currentList.add(productData);
+        }
+        tableView.refresh();
+    }
+    public static void s_ChangeItem(String[] str, int value)
+    {
+        for (ProductData productData : list)
+        {
+            if (Arrays.equals(productData.GetKey(), str)) productData.SetScore(value);
+        }
+        tableView.refresh();
+    }
+    public static void s_DeleteItem(String[] str)
+    {
+        list.removeIf(productData -> Arrays.equals(productData.GetKey(), str));
+        tableView.refresh();
+    }
+    public static void s_DeleteGroup(int min, int max)
     {
         try
         {
-            FileReader fileReader = new FileReader(file);
+            list.removeIf(productData -> (productData.GetScore() > min && productData.GetScore() < max));
+        }
+        catch (java.lang.NumberFormatException e)
+        {
+            e.printStackTrace();
+        }
+        tableView.refresh();
+    }
+    public static void s_MinimalMark()
+    {
+        int[] quarterArray = new int[4];
+        for (int i = 0; i < 4; i++)
+        {
+            int tempMinimal = 100;
+            boolean isChanged = false;
+            for (ProductData productData : currentList)
+            {
+                if (productData.GetNumber() == i + 1)
+                {
+                    if (productData.GetScore() < tempMinimal)
+                    {
+                        tempMinimal = productData.GetScore();
+                        isChanged = true;
+                    }
+                }
+            }
+            if (isChanged) quarterArray[i] = tempMinimal;
+            else quarterArray[i] = 0;
+        }
+
+        Text text = new Text(String.format("1-й квартал: %s\n2-й квартал: %s\n3-й квартал: %s\n4-й квартал: %s",
+                quarterArray[0],quarterArray[1],quarterArray[2],quarterArray[3]));
+        BorderPane borderPane = new BorderPane();
+        borderPane.setCenter(text);
+
+        generateStage("Минимальный балл по каждому кварталу", borderPane);
+    }
+    public static void s_DescMarkAscQuarter()
+    {
+        currentList.sort(comparator);
+        tableView.setItems(currentList);
+    }
+    public static void s_SumAllItems()
+    {
+        int count = 0;
+        ArrayList<Integer> counted = new ArrayList<>();
+        for (ProductData productData : currentList)
+        {
+            if (!counted.contains(productData.GetIdentifier()))
+            {
+                count++;
+                counted.add(productData.GetIdentifier());
+            }
+        }
+
+        Text text = new Text(String.format("Кол-во товаров: %s", count));
+        BorderPane borderPane = new BorderPane();
+        borderPane.setCenter(text);
+
+        generateStage("Общее кол-во товара", borderPane);
+    }
+    public static void s_FilterList(String str)
+    {
+        currentList.clear();
+        for (ProductData productData : list)
+        {
+            if (productData.GetCipher().equals(str))
+            {
+                currentList.add(productData);
+            }
+        }
+        tableView.setItems(currentList);
+    }
+    public static void s_ShowAll()
+    {
+        currentList.clear();
+        tableView.setItems(list);
+        currentList.addAll(list);
+    }
+    private static String openFile(File file)
+    {
+        try
+        {
+            BufferedReader  bufferedReader = new BufferedReader(new FileReader(file));
+            StringBuilder tempC = new StringBuilder();
+            while (bufferedReader.ready())
+            {
+                tempC.append(bufferedReader.readLine());
+            }
+            bufferedReader.close();
+            return tempC.toString();
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
+        return null;
+    }
+    private static void getUserList(String str)
+    {
+        if (str.length() != 0)
+        {
+            list.clear();
+            currentList.clear();
+
+            ProductData[] tempData = TransferData.StringToData(str);
+            list.addAll(tempData);
+            currentList.addAll(list);
+            tableView.setItems(list);
+        }
+    }
+    private static void generateStage(String title, BorderPane borderPane)
+    {
+        Stage stage = new Stage();
+        stage.setTitle(title);
+        stage.initModality(Modality.APPLICATION_MODAL);
+
+        Button btnClose = new Button("Закрыть");
+        btnClose.setPrefWidth(75);
+        btnClose.setPrefHeight(35);
+
+        btnClose.setOnAction(event -> stage.close());
+
+        borderPane.setBottom(btnClose);
+        BorderPane.setAlignment(btnClose, Pos.BOTTOM_CENTER);
+
+        stage.setScene(new Scene(borderPane));
+        stage.setWidth(450);
+        stage.setHeight(250);
+        stage.showAndWait();
     }
 }

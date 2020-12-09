@@ -1,7 +1,5 @@
 package sample;
 
-import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Map;
 
 public class TableController

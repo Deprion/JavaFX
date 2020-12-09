@@ -1,17 +1,13 @@
 package sample;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -19,8 +15,8 @@ import javafx.stage.Stage;
 
 public class InterfaceHandler
 {
-    private ObservableList<ProductData> list = FXCollections.observableArrayList();
     private Stage primaryStage;
+    private VBox vBox = new VBox();
 
     public void GenerateInterface()
     {
@@ -28,8 +24,7 @@ public class InterfaceHandler
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(text);
 
-        VBox vBox = new VBox();
-        vBox.getChildren().addAll(TopPanel(), borderPane, Table(), BottomPanel());
+        vBox.getChildren().addAll(TopPanel(), borderPane, InterfaceManager.s_Table(), BottomPanelEditing());
 
         Scene scene = new Scene(vBox);
 
@@ -62,76 +57,141 @@ public class InterfaceHandler
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuReference);
 
-        menuItemOpen.setOnAction(event -> InterfaceManager.s_HandleOpen(primaryStage));
-        menuItemNew.setOnAction(event -> InterfaceManager.s_HandleNew(primaryStage));
+        menuItemOpen.setOnAction(event -> {InterfaceManager.s_HandleOpen(primaryStage); ChangeBottom(false);});
+        menuItemNew.setOnAction(event -> {InterfaceManager.s_HandleNew(primaryStage); ChangeBottom(true);});
         menuItemSaveAs.setOnAction(event -> InterfaceManager.s_HandleSaveAs(primaryStage));
         menuItemSave.setOnAction(event -> InterfaceManager.s_HandleSave(primaryStage));
         menuItemClose.setOnAction(event -> Platform.exit());
-        menuStartEdit.setOnAction(event -> InterfaceManager.s_HandleStartEditing());
-        menuEndEdit.setOnAction(event -> InterfaceManager.s_HandleEndEditing());
+        menuStartEdit.setOnAction(event -> ChangeBottom(true));
+        menuEndEdit.setOnAction(event -> ChangeBottom(false));
         menuItemInfo.setOnAction(event -> InterfaceManager.s_HandleInfo());
         menuItemDescription.setOnAction(event -> InterfaceManager.s_HandleDescription());
 
         return menuBar;
     }
-    private TableView<ProductData> Table()
-    {
-        getUserList();
-
-        TableView<ProductData> tableView = new TableView<>();
-        TableColumn<ProductData, String> Identifier
-                = new TableColumn<>("Идентификационный номер товара");
-        TableColumn<ProductData, String> Cipher
-                = new TableColumn<>("Шифр инспектирующей фирмы");
-        TableColumn<ProductData, String> Number
-                = new TableColumn<>("Номер квартала");
-        TableColumn<ProductData, String> Score
-                = new TableColumn<>("Балл");
-
-        Identifier.setCellValueFactory(data -> data.getValue().GetIdentifierProperty().asString());
-        Cipher.setCellValueFactory(data -> data.getValue().GetCipherProperty());
-        Number.setCellValueFactory(data -> data.getValue().GetNumberProperty().asString());
-        Score.setCellValueFactory(data -> data.getValue().GetScoreProperty().asString());
-
-        tableView.setItems(list);
-        tableView.getColumns().addAll(Identifier, Cipher, Number, Score);
-
-        return tableView;
-
-    }
     private GridPane BottomPanel()
     {
         GridPane gridPane = new GridPane();
 
+        BorderPane borderPane = new BorderPane();
         Label label = new Label("Фильтр");
+        borderPane.setCenter(label);
 
         TextField textField = new TextField();
-        Button btn1 = new Button("Применить фильтр");
-        Button btn2 = new Button("Среднее");
-        Button btn3 = new Button("Вывести");
+        Button btnFilter = new Button("Применить фильтр");
+        Button btnMinMark = new Button("Минимальный балл по каждому кварталу");
+        Button btnShowAll = new Button("Вывести");
+        Button btnSort = new Button("Отсортировать по баллу");
+        Button btnSum = new Button("Общее кол-во товаров");
 
+        btnFilter.setMaxWidth(Double.MAX_VALUE);
+        btnMinMark.setMaxWidth(Double.MAX_VALUE);
+        btnShowAll.setMaxWidth(Double.MAX_VALUE);
+        btnSort.setMaxWidth(Double.MAX_VALUE);
+        btnSum.setMaxWidth(Double.MAX_VALUE);
+
+        btnMinMark.setOnAction(event -> InterfaceManager.s_MinimalMark());
+        btnSort.setOnAction(event -> InterfaceManager.s_DescMarkAscQuarter());
+        btnSum.setOnAction(event -> InterfaceManager.s_SumAllItems());
+        btnFilter.setOnAction(event -> InterfaceManager.s_FilterList(textField.getCharacters().toString()));
+        btnShowAll.setOnAction(event -> InterfaceManager.s_ShowAll());
+
+        ColumnConstraints column1 = new ColumnConstraints(150,150,Double.MAX_VALUE);
         ColumnConstraints column2 = new ColumnConstraints(150,150,Double.MAX_VALUE);
-        ColumnConstraints column3 = new ColumnConstraints(150,150,Double.MAX_VALUE);
+        column1.setHgrow(Priority.ALWAYS);
         column2.setHgrow(Priority.ALWAYS);
-        column3.setHgrow(Priority.ALWAYS);
-        gridPane.getColumnConstraints().addAll(column2, column3);
+        gridPane.getColumnConstraints().addAll(column1, column2);
 
-        gridPane.add(label, 0,0,2,1);
+        gridPane.add(borderPane, 0,0);
         gridPane.add(textField, 0, 1);
-        gridPane.setGridLinesVisible(true);
-        gridPane.add(btn1, 1, 1);
-        gridPane.add(btn2, 0, 3);
-        gridPane.add(btn3, 1,3);
+        gridPane.add(btnFilter, 1, 1);
+        gridPane.add(btnMinMark, 0, 2);
+        gridPane.add(btnShowAll, 1,2);
+        gridPane.add(btnSort, 0, 3);
+        gridPane.add(btnSum, 1, 3);
 
         return gridPane;
     }
-    private void getUserList() {
+    private GridPane BottomPanelEditing()
+    {
+        GridPane gridPane = new GridPane();
 
-        ProductData user1 = new ProductData(0,"10",15,100);
-        ProductData user2 = new ProductData(1,"121",65,99);
-        ProductData user3 = new ProductData(2,"101",2154,50);
+        TextField textFieldIdentifier = new TextField();
+        TextField textFieldCipher = new TextField();
+        TextField textFieldNumber = new TextField();
+        TextField textFieldScore = new TextField();
+        TextField textFieldMin = new TextField();
+        TextField textFieldMax = new TextField();
 
-        list.addAll(user1, user2, user3);
+        Button btnAdd = new Button("Добавить");
+        Button btnChange = new Button("Изменить");
+        Button btnDelete = new Button("Удалить");
+        Button btnDeleteGroup = new Button("Удалить группу");
+
+        btnAdd.setMaxWidth(Double.MAX_VALUE);
+        btnChange.setMaxWidth(Double.MAX_VALUE);
+        btnDelete.setMaxWidth(Double.MAX_VALUE);
+        btnDeleteGroup.setMaxWidth(Double.MAX_VALUE);
+
+        btnAdd.setOnAction(event -> InterfaceManager.s_AddItem(new ProductData(
+                Integer.parseInt(textFieldIdentifier.getCharacters().toString()),
+                textFieldCipher.getCharacters().toString(),
+                Integer.parseInt(textFieldNumber.getCharacters().toString()),
+                Integer.parseInt(textFieldScore.getCharacters().toString()))));
+        btnChange.setOnAction(event -> InterfaceManager.s_ChangeItem(new String[]
+                {
+                        textFieldIdentifier.getCharacters().toString(),
+                        textFieldCipher.getCharacters().toString(),
+                        textFieldNumber.getCharacters().toString(),
+                },
+                Integer.parseInt(textFieldScore.getCharacters().toString())));
+        btnDelete.setOnAction(event -> InterfaceManager.s_DeleteItem(new String[]
+                {
+                        textFieldIdentifier.getCharacters().toString(),
+                        textFieldCipher.getCharacters().toString(),
+                        textFieldNumber.getCharacters().toString(),
+                }));
+        btnDeleteGroup.setOnAction(event -> InterfaceManager.s_DeleteGroup(
+                Integer.parseInt(textFieldMin.getCharacters().toString()),
+                Integer.parseInt(textFieldMax.getCharacters().toString())));
+
+        ColumnConstraints column1 = new ColumnConstraints(150,150,Double.MAX_VALUE);
+        ColumnConstraints column2 = new ColumnConstraints(150,150,Double.MAX_VALUE);
+        ColumnConstraints column3 = new ColumnConstraints(150,150,Double.MAX_VALUE);
+        ColumnConstraints column4 = new ColumnConstraints(150,150,Double.MAX_VALUE);
+
+        column1.setHgrow(Priority.ALWAYS);
+        column2.setHgrow(Priority.ALWAYS);
+        column3.setHgrow(Priority.ALWAYS);
+        column4.setHgrow(Priority.ALWAYS);
+
+        gridPane.getColumnConstraints().addAll(column1, column2, column3, column4);
+
+        gridPane.add(textFieldIdentifier, 0, 0);
+        gridPane.add(textFieldCipher, 1, 0);
+        gridPane.add(textFieldNumber, 2, 0);
+        gridPane.add(textFieldScore, 3, 0);
+        gridPane.add(btnAdd, 0, 1, 2, 1);
+        gridPane.add(btnChange, 2, 1, 2, 1);
+        gridPane.add(btnDelete, 0, 2);
+        gridPane.add(btnDeleteGroup, 1, 2);
+        gridPane.add(textFieldMin, 2, 2);
+        gridPane.add(textFieldMax, 3, 2);
+
+        return gridPane;
+    }
+    private void ChangeBottom(boolean toEditing)
+    {
+        if (toEditing)
+        {
+            vBox.getChildren().remove(3);
+            vBox.getChildren().add(BottomPanelEditing());
+        }
+        else
+        {
+            vBox.getChildren().remove(3);
+            vBox.getChildren().add(BottomPanel());
+        }
     }
     public InterfaceHandler(Stage _primaryStage) { primaryStage = _primaryStage; }
 }

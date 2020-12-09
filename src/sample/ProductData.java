@@ -74,9 +74,20 @@ public class ProductData
     {
         Identifier = new SimpleIntegerProperty(identifier);
         Cipher = new SimpleStringProperty(cipher);
-        Number = new SimpleIntegerProperty(number);
+        if (number < 0) Number = new SimpleIntegerProperty(0);
+        else Number = new SimpleIntegerProperty(Math.min(number, 4));
         if (score < 0) Score = new SimpleIntegerProperty(0);
         else Score = new SimpleIntegerProperty(Math.min(score, 100));
         Key = new String[] {String.valueOf(identifier), cipher, String.valueOf(number)};
+    }
+    public ProductData(ProductData data)
+    {
+        Identifier = new SimpleIntegerProperty(data.GetIdentifier());
+        Cipher = new SimpleStringProperty(data.GetCipher());
+        if (data.GetNumber() < 0) Number = new SimpleIntegerProperty(0);
+        else Number = new SimpleIntegerProperty(Math.min(data.GetNumber(), 4));
+        if (data.GetScore() < 0) Score = new SimpleIntegerProperty(0);
+        else Score = new SimpleIntegerProperty(Math.min(data.GetScore(), 100));
+        Key = new String[] {String.valueOf(data.GetIdentifier()), data.GetCipher(), String.valueOf(data.GetNumber())};
     }
 }
