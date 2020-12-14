@@ -159,15 +159,15 @@ public class InterfaceManager
     }
     public static void s_AddItem(ProductData productData)
     {
-        boolean isAdd = false;
+        boolean isAdd = true;
         if (!list.isEmpty())
         {
             for (ProductData value : list)
             {
                 String[] data = value.GetKey();
-                if (!Arrays.toString(productData.GetKey()).equals(Arrays.toString(data)))
+                if (Arrays.toString(productData.GetKey()).equals(Arrays.toString(data)))
                 {
-                    isAdd = true;
+                    isAdd = false;
                 }
             }
             if (isAdd)
@@ -240,6 +240,8 @@ public class InterfaceManager
     }
     public static void s_DescMarkAscQuarter()
     {
+        currentList.clear();
+        currentList.addAll(list);
         currentList.sort(comparator);
         tableView.setItems(currentList);
     }
@@ -308,7 +310,10 @@ public class InterfaceManager
 
             ProductData[] tempData = TransferData.StringToData(str);
 
-            list.addAll(tempData);
+            for (ProductData productData : tempData)
+            {
+                s_AddItem(productData);
+            }
             currentList.addAll(list);
             tableView.setItems(list);
             tableView.refresh();
