@@ -12,14 +12,12 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import javax.swing.*;
-import java.awt.*;
-
 
 public class InterfaceHandler
 {
     private Stage primaryStage;
     private VBox vBox = new VBox();
+    private Text textMessage = new Text();
 
     public void GenerateInterface()
     {
@@ -27,7 +25,7 @@ public class InterfaceHandler
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(text);
 
-        vBox.getChildren().addAll(topPanel(), borderPane, InterfaceManager.s_Table(), bottomPanelEditing());
+        vBox.getChildren().addAll(topPanel(), borderPane, InterfaceManager.s_Table(), bottomPanelEditing(), textMessage);
 
         Scene scene = new Scene(vBox);
 
@@ -60,13 +58,31 @@ public class InterfaceHandler
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuReference);
 
-        menuItemOpen.setOnAction(event -> {InterfaceManager.s_HandleOpen(primaryStage); changeBottom(false);});
-        menuItemNew.setOnAction(event -> {InterfaceManager.s_HandleNew(primaryStage); changeBottom(true);});
+        menuItemOpen.setOnAction(event ->
+        {
+            InterfaceManager.s_HandleOpen(primaryStage);
+            changeBottom(false);
+            textMessage.setText("Открытие файла");
+        });
+        menuItemNew.setOnAction(event ->
+        {
+            InterfaceManager.s_HandleNew(primaryStage);
+            changeBottom(true);
+            textMessage.setText("Создание файла");
+        });
         menuItemSaveAs.setOnAction(event -> InterfaceManager.s_HandleSaveAs(primaryStage));
         menuItemSave.setOnAction(event -> InterfaceManager.s_HandleSave(primaryStage));
         menuItemClose.setOnAction(event -> Platform.exit());
-        menuStartEdit.setOnAction(event -> changeBottom(true));
-        menuEndEdit.setOnAction(event -> changeBottom(false));
+        menuStartEdit.setOnAction(event ->
+        {
+            changeBottom(true);
+            textMessage.setText("Начало редактирования");
+        });
+        menuEndEdit.setOnAction(event ->
+        {
+            changeBottom(false);
+            textMessage.setText("Конец редактирования");
+        });
         menuItemInfo.setOnAction(event -> InterfaceManager.s_HandleInfo());
         menuItemDescription.setOnAction(event -> InterfaceManager.s_HandleDescription());
 
@@ -94,10 +110,22 @@ public class InterfaceHandler
         btnSum.setMaxWidth(Double.MAX_VALUE);
 
         btnMinMark.setOnAction(event -> InterfaceManager.s_MinimalMark());
-        btnSort.setOnAction(event -> InterfaceManager.s_DescMarkAscQuarter());
+        btnSort.setOnAction(event ->
+        {
+            InterfaceManager.s_DescMarkAscQuarter();
+            textMessage.setText("Применена сортировка");
+        });
         btnSum.setOnAction(event -> InterfaceManager.s_SumAllItems());
-        btnFilter.setOnAction(event -> InterfaceManager.s_FilterList(textField.getCharacters().toString()));
-        btnShowAll.setOnAction(event -> InterfaceManager.s_ShowAll());
+        btnFilter.setOnAction(event ->
+        {
+            InterfaceManager.s_FilterList(textField.getCharacters().toString());
+            textMessage.setText("Фильтр применен");
+        });
+        btnShowAll.setOnAction(event ->
+        {
+            InterfaceManager.s_ShowAll();
+            textMessage.setText("Выведена вся БД");
+        });
 
         ColumnConstraints column1 = new ColumnConstraints(150,150,Double.MAX_VALUE);
         ColumnConstraints column2 = new ColumnConstraints(150,150,Double.MAX_VALUE);
@@ -136,18 +164,21 @@ public class InterfaceHandler
         btnDelete.setMaxWidth(Double.MAX_VALUE);
         btnDeleteGroup.setMaxWidth(Double.MAX_VALUE);
 
-        btnAdd.setOnAction(event -> InterfaceManager.s_AddItem(new ProductData(
-                Integer.parseInt(textFieldIdentifier.getCharacters().toString()),
-                textFieldCipher.getCharacters().toString(),
-                Integer.parseInt(textFieldNumber.getCharacters().toString()),
-                Integer.parseInt(textFieldScore.getCharacters().toString()))));
+        btnAdd.setOnAction(event ->
+        {
+            InterfaceManager.s_AddItem(new ProductData(
+                    CheckError(textFieldIdentifier),
+                    textFieldCipher.getCharacters().toString(),
+                    CheckError(textFieldNumber),
+                    CheckError(textFieldScore)));
+        });
         btnChange.setOnAction(event -> InterfaceManager.s_ChangeItem(new String[]
                 {
                         textFieldIdentifier.getCharacters().toString(),
                         textFieldCipher.getCharacters().toString(),
                         textFieldNumber.getCharacters().toString(),
                 },
-                Integer.parseInt(textFieldScore.getCharacters().toString())));
+                CheckError(textFieldScore)));
         btnDelete.setOnAction(event -> InterfaceManager.s_DeleteItem(new String[]
                 {
                         textFieldIdentifier.getCharacters().toString(),
@@ -155,8 +186,8 @@ public class InterfaceHandler
                         textFieldNumber.getCharacters().toString(),
                 }));
         btnDeleteGroup.setOnAction(event -> InterfaceManager.s_DeleteGroup(
-                Integer.parseInt(textFieldMin.getCharacters().toString()),
-                Integer.parseInt(textFieldMax.getCharacters().toString())));
+                CheckError(textFieldMin),
+                CheckError(textFieldMax)));
 
         ColumnConstraints column1 = new ColumnConstraints(150,150,Double.MAX_VALUE);
         ColumnConstraints column2 = new ColumnConstraints(150,150,Double.MAX_VALUE);
@@ -188,13 +219,27 @@ public class InterfaceHandler
         if (toEditing)
         {
             vBox.getChildren().remove(3);
-            vBox.getChildren().add(bottomPanelEditing());
+            vBox.getChildren().add(3, bottomPanelEditing());
         }
         else
         {
             vBox.getChildren().remove(3);
-            vBox.getChildren().add(bottomPanel());
+            vBox.getChildren().add(3, bottomPanel());
         }
+    }
+    private int CheckError(TextField textField)
+    {
+        int temp = 0;
+        try
+        {
+            temp = Integer.parseInt(textField.getCharacters().toString());
+        }
+        catch (Exception e)
+        {
+            e.getStackTrace();
+            textMessage.setText("Операция не удалась");
+        }
+        return temp;
     }
     public InterfaceHandler(Stage _primaryStage) { primaryStage = _primaryStage; }
 }

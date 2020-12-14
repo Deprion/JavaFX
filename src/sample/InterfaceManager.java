@@ -159,30 +159,33 @@ public class InterfaceManager
     }
     public static void s_AddItem(ProductData productData)
     {
-        boolean isAdd = true;
-        if (!list.isEmpty())
+        if (!productData.GetCipher().equals(""))
         {
-            for (ProductData value : list)
+            boolean isAdd = true;
+            if (!list.isEmpty())
             {
-                String[] data = value.GetKey();
-                if (Arrays.toString(productData.GetKey()).equals(Arrays.toString(data)))
+                for (ProductData value : list)
                 {
-                    isAdd = false;
+                    String[] data = value.GetKey();
+                    if (Arrays.toString(productData.GetKey()).equals(Arrays.toString(data)))
+                    {
+                        isAdd = false;
+                    }
+                }
+                if (isAdd)
+                {
+                    list.add(productData);
+                    currentList.add(productData);
                 }
             }
-            if (isAdd)
+            else
             {
                 list.add(productData);
                 currentList.add(productData);
+                tableView.setItems(list);
+                tableView.refresh();
             }
         }
-        else
-        {
-            list.add(productData);
-            currentList.add(productData);
-            tableView.setItems(list);
-        }
-        tableView.refresh();
     }
     public static void s_ChangeItem(String[] str, int value)
     {
