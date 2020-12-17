@@ -142,7 +142,7 @@ public class InterfaceManager
     public static void s_HandleInfo()
     {
         Text text = new Text("Систему разработал студент группы ПИН/б-19-о\nМельник Александр Сергеевич\n" +
-                "СевГУ - 2020"); //TODO
+                "СевГУ - 2020");
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(text);
 
@@ -151,7 +151,7 @@ public class InterfaceManager
     public static void s_HandleDescription()
     {
         Text text = new Text("Информационная система осуществляет хранение\nи обработку данных " +
-                "о качестве товара за год"); //TODO
+                "о качестве товара за год");
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(text);
 
